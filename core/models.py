@@ -23,6 +23,20 @@ ADDRESS_CHOICES = (
     ('S', 'Shipping'),
 )
 
+# ============================================================
+# FUNCIONALIDAD 3: Ciudades con despacho disponible
+# ============================================================
+ALLOWED_CITIES = [
+    'bogota', 'medellin', 'cali', 'barranquilla', 'cartagena',
+    'bucaramanga', 'pereira', 'manizales', 'pasto', 'cucuta'
+]
+
+# ============================================================
+# FUNCIONALIDAD 2: Monto mínimo para promoción automática
+# ============================================================
+PROMOTION_THRESHOLD = 100   # USD — si el carrito supera este valor
+PROMOTION_DISCOUNT = 0.10   # 10% de descuento automático
+
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
@@ -43,6 +57,10 @@ class Item(models.Model):
     slug = models.SlugField()
     description = models.TextField()
     image = models.ImageField()
+    # ============================================================
+    # FUNCIONALIDAD 1: Control de inventario
+    # ============================================================
+    stock = models.IntegerField(default=0)
 
     def __str__(self):
         return self.title
@@ -61,6 +79,14 @@ class Item(models.Model):
         return reverse("core:remove-from-cart", kwargs={
             'slug': self.slug
         })
+
+    def is_in_stock(self):
+        """Retorna True si hay al menos 1 unidad disponible."""
+        return self.stock > 0
+
+    def has_enough_stock(self, quantity):
+        """Retorna True si hay suficiente stock para la cantidad solicitada."""
+        return self.stock >= quantity
 
 
 class OrderItem(models.Model):
@@ -109,27 +135,37 @@ class Order(models.Model):
     refund_requested = models.BooleanField(default=False)
     refund_granted = models.BooleanField(default=False)
 
-    '''
-    1. Item added to cart
-    2. Adding a billing address
-    (Failed checkout)
-    3. Payment
-    (Preprocessing, processing, packaging etc.)
-    4. Being delivered
-    5. Received
-    6. Refunds
-    '''
-
     def __str__(self):
         return self.user.username
 
-    def get_total(self):
+    def get_subtotal(self):
+        """Subtotal antes de cupón y promoción automática."""
         total = 0
         for order_item in self.items.all():
             total += order_item.get_final_price()
+        return total
+
+    def get_promotion_discount(self):
+        """
+        FUNCIONALIDAD 2: Promoción automática por monto.
+        Si el subtotal supera PROMOTION_THRESHOLD, aplica PROMOTION_DISCOUNT.
+        """
+        subtotal = self.get_subtotal()
+        if subtotal > PROMOTION_THRESHOLD:
+            return round(subtotal * PROMOTION_DISCOUNT, 2)
+        return 0
+
+    def has_promotion(self):
+        """Retorna True si aplica la promoción automática."""
+        return self.get_subtotal() > PROMOTION_THRESHOLD
+
+    def get_total(self):
+        """Total final: subtotal - cupón - promoción automática."""
+        total = self.get_subtotal()
         if self.coupon:
             total -= self.coupon.amount
-        return total
+        total -= self.get_promotion_discount()
+        return max(total, 0)  # El total nunca puede ser negativo
 
 
 class Address(models.Model):
@@ -139,11 +175,24 @@ class Address(models.Model):
     apartment_address = models.CharField(max_length=100)
     country = CountryField(multiple=False)
     zip = models.CharField(max_length=100)
+    # ============================================================
+    # FUNCIONALIDAD 3: Ciudad para validar despacho
+    # ============================================================
+    city = models.CharField(max_length=100, blank=True, null=True)
     address_type = models.CharField(max_length=1, choices=ADDRESS_CHOICES)
     default = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
+
+    def is_city_allowed(self):
+        """
+        FUNCIONALIDAD 3: Verifica si la ciudad tiene despacho disponible.
+        Retorna True si la ciudad está en la lista de ciudades permitidas.
+        """
+        if not self.city:
+            return False
+        return self.city.strip().lower() in ALLOWED_CITIES
 
     class Meta:
         verbose_name_plural = 'Addresses'
