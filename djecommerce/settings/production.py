@@ -1,7 +1,8 @@
 import dj_database_url
 from .base import *
 
-DEBUG = False
+from decouple import config
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
 
