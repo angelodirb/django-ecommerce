@@ -21,7 +21,6 @@ DATABASES = {
         conn_max_age=600,
     )
 }
-DATABASES['default']['TIME_ZONE'] = 'UTC'
 DATABASES['default']['OPTIONS'] = {'options': '-c timezone=UTC'}
 
 # WhiteNoise para archivos estáticos
@@ -40,3 +39,6 @@ SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_SECONDS = 31536000
 SECURE_SSL_REDIRECT = True
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+# Parche para compatibilidad Django 2.2 con PostgreSQL moderno
+from django.db.backends.postgresql import utils as psql_utils
+psql_utils.utc_tzinfo_factory = lambda offset: __import__('datetime').timezone.utc
