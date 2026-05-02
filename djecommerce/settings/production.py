@@ -1,7 +1,8 @@
+import os
 import dj_database_url
 from .base import *
-
 from decouple import config
+
 DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = ['.onrender.com', 'localhost', '127.0.0.1']
@@ -17,12 +18,11 @@ AUTH_PASSWORD_VALIDATORS = [
 DATABASES = {
     'default': dj_database_url.config(
         default='sqlite:///' + os.path.join(BASE_DIR, 'db.sqlite3'),
-        conn_max_age=600
-    ),
-    'OPTIONS': {
-            'options': '-c timezone=UTC'
-    }
+        conn_max_age=600,
+    )
 }
+DATABASES['default']['TIME_ZONE'] = 'UTC'
+DATABASES['default']['OPTIONS'] = {'options': '-c timezone=UTC'}
 
 # WhiteNoise para archivos estáticos
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
