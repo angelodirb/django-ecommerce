@@ -2,7 +2,6 @@ from django import forms
 from django_countries.fields import CountryField
 from django_countries.widgets import CountrySelectWidget
 
-
 PAYMENT_CHOICES = (
     ('S', 'Stripe'),
     ('P', 'PayPal')
@@ -18,6 +17,8 @@ class CheckoutForm(forms.Form):
             'class': 'custom-select d-block w-100',
         }))
     shipping_zip = forms.CharField(required=False)
+    # FUNCIONALIDAD 3: Campo ciudad de envío
+    shipping_city = forms.CharField(required=False)
 
     billing_address = forms.CharField(required=False)
     billing_address2 = forms.CharField(required=False)
@@ -33,7 +34,6 @@ class CheckoutForm(forms.Form):
     use_default_shipping = forms.BooleanField(required=False)
     set_default_billing = forms.BooleanField(required=False)
     use_default_billing = forms.BooleanField(required=False)
-
     payment_option = forms.ChoiceField(
         widget=forms.RadioSelect, choices=PAYMENT_CHOICES)
 
