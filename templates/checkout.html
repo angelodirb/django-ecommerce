@@ -34,6 +34,19 @@
                       Please select a valid country.
                     </div>
                   </div>
+
+                  <!-- FUNCIONALIDAD 3: Campo ciudad de envío -->
+                  <div class="col-lg-4 col-md-6 mb-4">
+                    <label for="shipping_city">City</label>
+                    <input type='text' placeholder='City' id='shipping_city' name='shipping_city' class='form-control' />
+                    <small class="text-muted">
+                      Available cities: Bogota, Medellin, Cali, Barranquilla, Cartagena, Bucaramanga, Pereira, Manizales, Pasto, Cucuta
+                    </small>
+                    <div class="invalid-feedback">
+                      City required.
+                    </div>
+                  </div>
+
                   <div class="col-lg-4 col-md-6 mb-4">
                     <label for="shipping_zip">Zip</label>
                     <input type='text' placeholder='Zip code' id='shipping_zip' name='shipping_zip' class='form-control' />
@@ -92,7 +105,6 @@
                       Zip code required.
                     </div>
                   </div>
-
                 </div>
 
                 <div class="custom-control custom-checkbox">
@@ -108,7 +120,16 @@
                 <label class="custom-control-label" for="use_default_billing">Use default billing address: {{ default_billing_address.street_address|truncatechars:10 }}</label>
               </div>
               {% endif %}
+
               <hr>
+
+              <!-- FUNCIONALIDAD 2: Mostrar promoción automática si aplica -->
+              {% if has_promotion %}
+              <div class="alert alert-success" role="alert">
+                🎉 You get a <strong>10% automatic discount</strong> because your order exceeds $100!
+                You save: <strong>${{ promotion_discount }}</strong>
+              </div>
+              {% endif %}
 
               <h3>Payment option</h3>
 
@@ -149,21 +170,24 @@ var hideable_billing_form = $('.hideable_billing_form');
 var use_default_shipping = document.querySelector("input[name=use_default_shipping]");
 var use_default_billing = document.querySelector("input[name=use_default_billing]");
 
-use_default_shipping.addEventListener('change', function() {
-  if (this.checked) {
-    hideable_shipping_form.hide();
-  } else {
-    hideable_shipping_form.show();
-  }
-})
+if (use_default_shipping) {
+  use_default_shipping.addEventListener('change', function() {
+    if (this.checked) {
+      hideable_shipping_form.hide();
+    } else {
+      hideable_shipping_form.show();
+    }
+  });
+}
 
-use_default_billing.addEventListener('change', function() {
-  if (this.checked) {
-    hideable_billing_form.hide();
-  } else {
-    hideable_billing_form.show();
-  }
-})
-
+if (use_default_billing) {
+  use_default_billing.addEventListener('change', function() {
+    if (this.checked) {
+      hideable_billing_form.hide();
+    } else {
+      hideable_billing_form.show();
+    }
+  });
+}
 </script>
 {% endblock extra_scripts %}
