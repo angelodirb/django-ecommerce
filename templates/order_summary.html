@@ -1,9 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
   <main>
     <div class="container">
-
     <div class="table-responsive text-nowrap">
     <h2>Order Summary</h2>
     <table class="table">
@@ -49,12 +47,25 @@
             </td>
         </tr>
         {% endfor %}
+
         {% if object.coupon %}
         <tr>
-            <td colspan="4"><b>Coupon</b></td>
-            <td><b>-${{ object.coupon.amount }}</b></td>
+            <td colspan="4"><b>Coupon ({{ object.coupon.code }})</b></td>
+            <td><b class="text-danger">-${{ object.coupon.amount }}</b></td>
         </tr>
         {% endif %}
+
+        <!-- FUNCIONALIDAD 2: Mostrar descuento automático por monto -->
+        {% if has_promotion %}
+        <tr class="table-success">
+            <td colspan="4">
+                <b>🎉 Automatic 10% discount</b>
+                <small class="text-muted">(order over $100)</small>
+            </td>
+            <td><b class="text-success">-${{ promotion_discount }}</b></td>
+        </tr>
+        {% endif %}
+
         {% if object.get_total %}
         <tr>
             <td colspan="4"><b>Order Total</b></td>
@@ -67,14 +78,18 @@
             </td>
         </tr>
         {% endif %}
+
         </tbody>
     </table>
 
+    <!-- FUNCIONALIDAD 2: Banner informativo si está cerca del umbral -->
+    {% if not has_promotion %}
+    <div class="alert alert-info mt-3" role="alert">
+        💡 Add ${{ promotion_missing }} more to your cart to get an automatic <strong>10% discount</strong>!
     </div>
+    {% endif %}
 
+    </div>
     </div>
   </main>
-
 {% endblock content %}
-
-
