@@ -352,11 +352,12 @@ class OrderSummaryView(LoginRequiredMixin, View):
     def get(self, *args, **kwargs):
         try:
             order = Order.objects.get(user=self.request.user, ordered=False)
+            subtotal = order.get_subtotal()
             context = {
                 'object': order,
-                # FUNCIONALIDAD 2: pasar info de promoción al resumen
                 'has_promotion': order.has_promotion(),
                 'promotion_discount': order.get_promotion_discount(),
+                'promotion_missing': round(max(100 - subtotal, 0), 2),  # ← nueva línea
             }
             return render(self.request, 'order_summary.html', context)
         except ObjectDoesNotExist:
